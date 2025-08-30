@@ -101,15 +101,20 @@ export function matchStock(headline, stockList) {
         if (stock.ticker && text.includes(stock.ticker.toLowerCase())) {
             return stock;
         }
-    }
 
-    // 2️⃣ Exact company name match
-    for (const stock of stockList) {
         const company = normalize(stock.stockName);
         if (text.includes(company)) {
             return stock;
         }
     }
+
+    // 2️⃣ Exact company name match
+    // for (const stock of stockList) {
+    //     const company = normalize(stock.stockName);
+    //     if (text.includes(company)) {
+    //         return stock;
+    //     }
+    // }
 
     // 3️⃣ Two-word match
     const textWords = text.split(/\s+/);
@@ -143,14 +148,14 @@ export function matchStock(headline, stockList) {
     }
 
     // 5️⃣ Fuzzy fallback (short texts only)
-    if (textWords.length <= 6) {
+    // if (textWords.length <= 6) {
         const candidates = stockList.map(s => normalize(s.stockName));
         const { bestMatch, bestMatchIndex } = stringSimilarity.findBestMatch(text, candidates);
 
         if (bestMatch.rating > 0.7) {
             return stockList[bestMatchIndex]; // return fuzzy match
         }
-    }
+    // }
 
     return null; // nothing found
 }
