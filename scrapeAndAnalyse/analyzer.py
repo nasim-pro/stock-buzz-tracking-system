@@ -13,7 +13,7 @@ doc = nlp(text)
 orgs = set()
 
 # Expanded blacklist of generic financial/news terms
-blacklist = {
+blacklist = blacklist = {word.strip().lower() for word in [
     "Login", "Moneycontrol", "Read More", "Stocks", "India", 
     "BSE", "NSE", "Sensex", "Nifty", "Market", "Markets", "Stock",
     "Exchange", "Stock Markets", "Mutual Funds", "IPO", "FII", 
@@ -22,8 +22,20 @@ blacklist = {
     "Economy", "Business", "Growth", "Profit", "Loss", "Quarter",
     "Report", "Update", "Analysis", "Global", "Research", "Stock Ideas",
     "Business News", "Stock Screener", "Stock Watch", "Market Calendar", "Stock Price",
-    
-}
+    "BULL", "BEAR", "LIVE", "NEWS", "VIDEO", "EVENTS", "DATA", "TOOLS", "MORE",
+    "FINANCE", "ECONOMY", "INVESTING", "WhatsApp", "Telegram", "Facebook", "Twitter", "LinkedIn",
+    "हिन्दी", "ગુજરાતી", "मराठी", "বাংলা", "ಕನ್ನಡ", "தமிழ்", "తెలుగు", "മലയാളം",
+    "Calculator", "Portfolio", "Watchlist", "Alerts", "Settings", "Help", "Contact Us",
+    "Privacy Policy", "Terms of Service", "About Us", "Careers", "Sitemap", "Advertise",
+    "Subscribe", "Feedback", "Support", "Community", "Forum", "Blog", "Newsletter", "Press",
+    "Media", "Resources", "Tools", "Guides", "Tutorials", "Webinars", "Events", "Conferences",
+    "Workshops", "Courses", "E-books", "Whitepapers", "Case Studies", "Infographics", "Podcasts",
+    "Videos", "Interviews", "Opinions", "Editorials", "Columns", "Features", "Reviews", "Ratings",
+    "Testimonials", "Success Stories", "Partnerships", "Collaborations", "Sponsorships", "Affiliates",
+    "Investopedia", "Yahoo Finance", "Google Finance", "Bloomberg", "Reuters", "CNBC", "WSJ", "FT",
+    "Forbes", "Business Insider", "MarketWatch", "Seeking Alpha", "Zacks", "Morningstar", "The Motley Fool",
+    "GuruFocus", "TipRanks", "Simply Wall St", "Koyfin", "Finviz", "TradingView", "StockTwits", "eToro", "Robinhood",
+]}
 
 for ent in doc.ents:
     if ent.label_ == "ORG":
@@ -32,7 +44,7 @@ for ent in doc.ents:
             len(name) > 2
             and not name.islower()
             and not name.isdigit()
-            and name not in blacklist
+            and name.lower() not in blacklist
         ):
             orgs.add(name)
 
