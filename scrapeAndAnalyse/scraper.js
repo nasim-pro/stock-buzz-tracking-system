@@ -127,7 +127,8 @@ export async function scrape(url) {
             await browser.close();
 
             // Call Python analyzer
-            const py = spawn("python3", ["scrapeAndAnalyse/analyzer.py"]);
+            // const py = spawn("python3", ["scrapeAndAnalyse/analyzer.py"]);
+            const py = spawn("/home/nasim/workstation/stock-buzz-tracking-system/.venv/bin/python3", ["scrapeAndAnalyse/analyzer.py"]);
 
             let result = "";
             py.stdout.on("data", (data) => {
