@@ -9,6 +9,7 @@ import Mention from "../models/Mention.js";
 dotenv.config();
 import { SITES } from "./sites.js";
 import { scrape } from "./scraper.js";
+import { getRelevantHeadlines } from "./relevantHeadlines.js";
 const MONGO_URI = process.env.MONGO_URI;
 // Setup __dirname in ES module
 const __filename = fileURLToPath(import.meta.url);
@@ -18,7 +19,7 @@ const COLORS = {
     red: "\x1b[31m",
     green: "\x1b[32m",
     blue: "\x1b[34m",
-    yellow: "\x1b[33m"
+    yellow: "\x1b[33m",
 };
 
 async function matchStocksWithCompaniesAndPush(source, stockList) {
@@ -60,30 +61,37 @@ function clearCompaniesFile() {
     fs.writeFileSync(filePath, "");
 }
 
+async function scrapeAllLinksFromSite(site) {
+    try {
+        const siteLinks = await getRelevantHeadlines(site.url, site.name);
+        for (const link of siteLinks) {
+            console.log("Scraping article:", link.link);
+            
+            await scrape(link.link);
+        }
+    } catch (err) {
+        console.log(`Error in scrapeAllLinksFromSite: ${err.message}`);
+    }
+}
 
 
 async function main() {
     try {
         await mongoose.connect(MONGO_URI);
-
         // Fetch stock list once
         const stockList = await Stock.find({}, "stockName ticker").lean();
 
         for (const site of SITES) {
             try {
-                console.log('');
-                console.log("<============================================================>");
-                console.log("<============================================================>");
-                console.log('');
+                console.log(`\n<============================================================>\n`);
                 clearCompaniesFile(); // Clear file before each scrape
-                console.log(`${COLORS.green}Started Scraping for ${site.name}${COLORS.reset}`);
-                await scrape(site.url);
-                console.log(`${COLORS.green}Scraping completed for ${site.name}${COLORS.reset}`);
+                console.log(`[${new Date().toISOString()}] Started Scraping: ${site.name}`);
+                await scrapeAllLinksFromSite(site);
+                console.log(`[${new Date().toISOString()}] Completed Scraping: ${site.name}`);
                 await matchStocksWithCompaniesAndPush(site.name, stockList);
                 await sleep(2000); // 2 seconds delay between sites
-                
             } catch (err) {
-                console.error(`${COLORS.red} Error processing site ${site.name}: ${err.message}${COLORS.reset}`);
+                console.error(`[${new Date().toISOString()}] Error processing site ${site.name}: ${err.message}`);
             }
         }
     } catch (err) {
