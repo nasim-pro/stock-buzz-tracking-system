@@ -44,8 +44,15 @@ export const SITES = [
         name: "forbesindia",
         url: "https://www.forbesindia.com/",
     },
+    
     {
-        name: "financialchronicle",
-        url: "http://epaper.mydigitalfc.com/",
-    }
+        name: "news18",
+        url: "https://www.news18.com/business/",
+    },
+    {
+        name: "cnbctv18",
+        url: "https://www.cnbctv18.com/market",
+    },
+    
+    
 ];
