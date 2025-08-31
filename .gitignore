@@ -9,3 +9,5 @@
 /.vercel
 /.vscode       
 /.venv
+/scrapeAndAnalyse/companies.txt
+/logs
