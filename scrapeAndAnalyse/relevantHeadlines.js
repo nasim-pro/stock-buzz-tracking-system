@@ -5,7 +5,7 @@ import puppeteer from "puppeteer";
  * @param {string} url - The main page URL
  * @param {string} source - Source identifier (moneycontrol, economictimes, etc.)
  */
-export async function getRelevantHeadlines(url, source) {
+export async function getRelevantLinksFromSite(url, source) {
     const browser = await puppeteer.launch({ headless: true, args: ["--no-sandbox", "--disable-setuid-sandbox"], });
     const page = await browser.newPage();
 
@@ -25,7 +25,7 @@ export async function getRelevantHeadlines(url, source) {
     });
 
     try {
-        await page.goto(url, { waitUntil: "domcontentloaded", timeout: 45000 });
+        await page.goto(url, { waitUntil: "domcontentloaded", timeout: 40000 });
         if (source === "economictimes") {
             await page.waitForSelector("ul li a", { timeout: 20000 });
         }
@@ -79,7 +79,6 @@ export async function getRelevantHeadlines(url, source) {
 
         // console.log(`Filtered articles for ${source}:`, articles);
         const linksToVisit = filterArticlesByKeywords(articles);
-        console.log("linksToVisit for ",source, linksToVisit.length);
         return linksToVisit;
     } catch (err) {
         console.error(`Error scraping ${source}:`, err.message);
@@ -92,11 +91,7 @@ export async function getRelevantHeadlines(url, source) {
 const KEY_WORDS = [
     "stock",
     "shares",
-    "company",
-    "market",
     "finance",
-    "ipo",
-    "listing",
     "equity",
     "business",
     "investment",
@@ -107,31 +102,22 @@ const KEY_WORDS = [
     "earnings",
     "revenue",
     "profit",
-    "loss",
     "merger",
     "acquisition",
     "funding",
     "valuation",
-    "crash",
     "rally",
-    "correction",
-    "index",
-    "nifty",
-    "sensex",
     "bse",
     "nse",
     "portfolio",
     "analyst",
     "target price",
     "guidance",
-    "outlook",
     "sector",
     "industry",
     "inflation",
     "interest rate",
-    "drop",
     "rise",
-    "fall",
     "soar",
     "plummet",
     "surge",
@@ -139,11 +125,13 @@ const KEY_WORDS = [
     "volatility",
     "trend",
     "gainers",
+    "gains",
     "gain",
     "shares",
     "share",
     "firm",
     "brand",
+    "company",
     "smallcap",
     "midcap",
     "largecap",
@@ -174,7 +162,6 @@ const KEY_WORDS = [
     "maintain",
     "hold",
     "buy",
-    "sell",
     "increase",
     "Microcap"
 ];
@@ -194,8 +181,8 @@ export function filterArticlesByKeywords(articles) {
     });
 }
 
-// // Example usage:
-// getRelevantHeadlines(
-//     "https://www.business-standard.com/markets/news",
-//     "businessstandard",
-// );
+// Example usage:
+getRelevantLinksFromSite(
+    "https://www.business-standard.com/markets/news",
+    "businessstandard",
+);
