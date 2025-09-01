@@ -9,18 +9,11 @@ import Mention from "../models/Mention.js";
 dotenv.config();
 import { SITES } from "./sites.js";
 import { scrape } from "./scraper.js";
-import { getRelevantHeadlines } from "./relevantHeadlines.js";
+import { getRelevantLinksFromSite } from "./relevantHeadlines.js";
 const MONGO_URI = process.env.MONGO_URI;
 // Setup __dirname in ES module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const COLORS = {
-    reset: "\x1b[0m",
-    red: "\x1b[31m",
-    green: "\x1b[32m",
-    blue: "\x1b[34m",
-    yellow: "\x1b[33m",
-};
 
 async function matchStocksWithCompaniesAndPush(source, stockList) {
     const filePath = path.join(__dirname, "/companies.txt");
@@ -63,16 +56,16 @@ function clearCompaniesFile() {
 
 async function scrapeAllLinksFromSite(site) {
     try {
-        const siteLinks = await getRelevantHeadlines(site.url, site.name);
-        for (const link of siteLinks) {
-            console.log("Scraping article:", link.link);
-            
-            await scrape(link.link);
-        }
+        const { name, url } = site;
+        const siteLinks = await getRelevantLinksFromSite(url, name);
+        const linksToVisit = siteLinks?.map(l => l?.link);
+        console.log(`[${new Date().toISOString()}] Total links found to visit for ${name}: ${linksToVisit.length}`);
+        await scrape(linksToVisit);
     } catch (err) {
-        console.log(`Error in scrapeAllLinksFromSite: ${err.message}`);
+        throw err;
     }
 }
+
 
 
 async function main() {
@@ -80,10 +73,10 @@ async function main() {
         await mongoose.connect(MONGO_URI);
         // Fetch stock list once
         const stockList = await Stock.find({}, "stockName ticker").lean();
-
+        console.log("Scraper and Analyzer started...");
         for (const site of SITES) {
             try {
-                console.log(`\n<============================================================>\n`);
+                console.log(`\n<=================================================================>\n`);
                 clearCompaniesFile(); // Clear file before each scrape
                 console.log(`[${new Date().toISOString()}] Started Scraping: ${site.name}`);
                 await scrapeAllLinksFromSite(site);
@@ -94,6 +87,7 @@ async function main() {
                 console.error(`[${new Date().toISOString()}] Error processing site ${site.name}: ${err.message}`);
             }
         }
+        console.log("\nAll sites processed. Exiting...");
     } catch (err) {
         console.error("Fatal error:", err);
     } finally {
