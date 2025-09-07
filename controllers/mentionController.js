@@ -127,71 +127,70 @@ export const leastRanking = async (req, res) => {
 export const getTrendingStocks = async (req, res) => {
     try {
         const { page = 1, limit = 10 } = req.query;
-        const pageNumber = parseInt(page, 10);
-        const limitNumber = parseInt(limit, 10);
-
-        if (isNaN(pageNumber) || pageNumber < 1 || isNaN(limitNumber) || limitNumber < 1) {
-            return res.status(400).json({ error: 'Invalid page or limit parameters.' });
-        }
+        const pageNumber = Math.max(1, parseInt(page, 10));
+        const limitNumber = Math.max(1, parseInt(limit, 10));
 
         const now = new Date();
-        const last36Hours = new Date(now - 36 * 60 * 60 * 1000);
-        const prev36Hours = new Date(now - 72 * 60 * 60 * 1000);
+        const last24Hours = new Date(now - 24 * 60 * 60 * 1000);
+        const prev24Hours = new Date(now - 48 * 60 * 60 * 1000);
 
-        // Mentions in the last 36 hours
+        // Mentions in the last 24 hours
         const recentMentions = await Mention.aggregate([
-            { $match: { createdAt: { $gte: last36Hours } } },
+            { $match: { createdAt: { $gte: last24Hours } } },
             {
                 $group: {
-                    _id: "$stockName",
-                    ticker: { $first: "$ticker" },
+                    _id: { stockName: "$stockName", ticker: "$ticker" },
                     mentionCount: { $sum: 1 },
                 },
             },
         ]);
 
-        // Mentions in the previous 36–72 hours
+        // Mentions in the previous 24–48 hours
         const previousMentions = await Mention.aggregate([
-            { $match: { createdAt: { $gte: prev36Hours, $lt: last36Hours } } },
+            { $match: { createdAt: { $gte: prev24Hours, $lt: last24Hours } } },
             {
                 $group: {
-                    _id: "$stockName",
+                    _id: { stockName: "$stockName", ticker: "$ticker" },
                     mentionCount: { $sum: 1 },
                 },
             },
         ]);
 
-        // Convert previous mentions to a map for easy lookup
+        // Convert previous mentions to map
         const prevMap = {};
         previousMentions.forEach(m => {
-            prevMap[m._id] = m.mentionCount;
+            prevMap[`${m._id.stockName}|${m._id.ticker}`] = m.mentionCount;
         });
 
         // Add momentum
         const trendingWithMomentum = recentMentions.map(stock => {
-            const prevCount = prevMap[stock._id] || 0;
+            const key = `${stock._id.stockName}|${stock._id.ticker}`;
+            const prevCount = prevMap[key] || 0;
             const momentum = prevCount > 0 ? stock.mentionCount / prevCount : stock.mentionCount;
-            return { ...stock, momentum: parseFloat(momentum.toFixed(2)) };
+            return {
+                stockName: stock._id.stockName,
+                ticker: stock._id.ticker,
+                mentionCount: stock.mentionCount,
+                momentum: parseFloat(momentum.toFixed(2)),
+            };
         });
 
         // Sort by momentum first, then mentionCount
         trendingWithMomentum.sort((a, b) => b.momentum - a.momentum || b.mentionCount - a.mentionCount);
 
-        // Apply pagination
+        // Pagination
         const totalStocks = trendingWithMomentum.length;
         const totalPages = Math.ceil(totalStocks / limitNumber);
-        const startIndex = (pageNumber - 1) * limitNumber;
-        const endIndex = startIndex + limitNumber;
-
-        const paginatedStocks = trendingWithMomentum.slice(startIndex, endIndex);
+        const paginatedStocks = trendingWithMomentum.slice((pageNumber - 1) * limitNumber, pageNumber * limitNumber);
 
         res.json({
             stocks: paginatedStocks,
             currentPage: pageNumber,
-            totalPages: totalPages,
-            totalStocks: totalStocks,
+            totalPages,
+            totalStocks,
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
+
