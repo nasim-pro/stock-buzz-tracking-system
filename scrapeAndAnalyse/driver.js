@@ -73,21 +73,21 @@ async function main() {
         await mongoose.connect(MONGO_URI);
         // Fetch stock list once
         const stockList = await Stock.find({}, "stockName ticker").lean();
-        console.log("Scraper and Analyzer started...");
+        console.log(`[${new Date().toLocaleString()}]`, "Scraper and Analyzer started...");
         for (const site of SITES) {
             try {
                 console.log(`\n<=================================================================>\n`);
                 clearCompaniesFile(); // Clear file before each scrape
-                console.log(`[${new Date().toISOString()}] Started Scraping: ${site.name}`);
+                console.log(`[${ new Date().toLocaleString() }] Started Scraping: ${site.name}`);
                 await scrapeAllLinksFromSite(site);
-                console.log(`[${new Date().toISOString()}] Completed Scraping: ${site.name}`);
+                console.log(`[${new Date().toLocaleString() }] Completed Scraping: ${site.name}`);
                 await matchStocksWithCompaniesAndPush(site.name, stockList);
                 await sleep(2000); // 2 seconds delay between sites
             } catch (err) {
-                console.error(`[${new Date().toISOString()}] Error processing site ${site.name}: ${err.message}`);
+                console.error(`[${new Date().toLocaleString() }] Error processing site ${site.name}: ${err.message}`);
             }
         }
-        console.log("\nAll sites processed. Exiting...");
+        console.log("\nAll sites processed. Exiting...", `[${new Date().toLocaleString()}]`);
     } catch (err) {
         console.error("Fatal error:", err);
     } finally {
