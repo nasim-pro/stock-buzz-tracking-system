@@ -33,30 +33,21 @@ export async function getRelevantLinksFromSite(url, source) {
         const articles = await page.evaluate((source) => {
             if (source === "moneycontrol") {
                 // Select all li elements inside ul#category
-                const liNodes = Array.from(
-                    document.querySelectorAll(
-                        "body section div#left ul#category li",
-                    ),
+                const nodes = Array.from(
+                    document.querySelectorAll("h2 a, h3 a"),
                 );
-
-                return liNodes.map((li) => {
-                    const aTag = li.querySelector("h2 a");
-                    return {
-                        title: aTag ? aTag.innerText.trim() : null,
-                        link: aTag ? aTag.href : null,
-                    };
-                }).filter((a) => a.title && a.link); // keep only valid entries
+                return nodes.map((node) => ({
+                    title: node.innerText.trim(),
+                    link: node.href,
+                })).filter((a) => a.title && a.link);
             } else if (source === "economictimes") {
-                const liNodes = Array.from(document.querySelectorAll("ul li"));
-                console.log("liNodes", liNodes);
-
-                return liNodes.map((li) => {
-                    const aTag = li.querySelector("a");
-                    return {
-                        title: aTag ? aTag.innerText.trim() : null,
-                        link: aTag ? aTag.href : null,
-                    };
-                }).filter((a) => a.title && a.link);
+                const nodes = Array.from(
+                    document.querySelectorAll("h1 a, h2 a, h3 a, div a"),
+                );
+                return nodes.map((node) => ({
+                    title: node.innerText.trim(),
+                    link: node.href,
+                })).filter((a) => a.title && a.link);
             } else if (source === "livemint") {
                 const nodes = Array.from(
                     document.querySelectorAll("h2 a, h3 a"),
@@ -68,7 +59,7 @@ export async function getRelevantLinksFromSite(url, source) {
             } else {
                 // Generic fallback
                 const nodes = Array.from(
-                    document.querySelectorAll("h1 a, h2 a, h3 a, li a, div a"),
+                    document.querySelectorAll("h1 a, h2 a, h3 a, li a"),
                 );
                 return nodes.map((node) => ({
                     title: node.innerText.trim(),
@@ -89,82 +80,42 @@ export async function getRelevantLinksFromSite(url, source) {
 }
 
 const KEY_WORDS = [
-    "stock",
-    "shares",
-    "finance",
-    "equity",
-    "business",
-    "investment",
-    "trading",
-    "bullish",
-    "bearish",
-    "dividend",
-    "earnings",
-    "revenue",
     "profit",
-    "merger",
-    "acquisition",
-    "funding",
-    "valuation",
-    "rally",
-    "bse",
-    "nse",
-    "portfolio",
-    "analyst",
-    "target price",
-    "guidance",
-    "sector",
-    "industry",
-    "inflation",
-    "interest rate",
-    "rise",
-    "soar",
-    "plummet",
-    "surge",
-    "slump",
-    "volatility",
-    "trend",
-    "gainers",
-    "gains",
     "gain",
-    "shares",
-    "share",
-    "firm",
-    "brand",
-    "company",
-    "smallcap",
-    "midcap",
-    "largecap",
-    "multicap",
-    "penny stock",
-    "investors",
-    "Q1",
-    "Q2",
-    "Q3",
-    "Q4",
-    "quarterly",
-    "annual",
-    "yearly",
-    "buyback",
-    "split",
-    "bonus",
-    "offer",
-    "dilution",
-    "promoter",
-    "holding",
-    "fii",
-    "dii",
-    "sebi",
-    "analysts",
-    "broker",
-    "downgrade",
+    "gains",
+    "gainers",
+    "surge",
+    "surges",
+    "soar",
+    "soars",
+    "rise",
+    "rises",
+    "jump",
+    "jumps",
+    "jumped",
+    "rally",
+    "rallies",
+    "climb",
+    "climbs",
+    "spike",
+    "spikes",
+    "shoots",
+    "skyrocket",
+    "skyrocketed",
+    "rockets",
+    "advance",
+    "advances",
+    "high",
+    "record",
+    "uptrend",
+    "bullish",
     "upgrade",
-    "maintain",
-    "hold",
-    "buy",
-    "increase",
-    "Microcap"
+    "outperform",
+    "new high",
+    "buyback",
+    "buy back",
 ];
+
 
 /**
  * Filter articles by keywords
@@ -181,8 +132,8 @@ export function filterArticlesByKeywords(articles) {
     });
 }
 
-// Example usage:
-getRelevantLinksFromSite(
-    "https://www.business-standard.com/markets/news",
-    "businessstandard",
-);
+// // Example usage:
+// getRelevantLinksFromSite(
+//     "https://www.business-standard.com/markets/news",
+//     "businessstandard",
+// );
